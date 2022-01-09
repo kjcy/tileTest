@@ -66,7 +66,7 @@ public class Player : MonoBehaviour
             Playattack();
         }*/
 
-        if(Input.GetMouseButtonDown(0) && timecount[0]<=0)
+        if(Input.GetMouseButton(0) && timecount[0]<=0)
         {
             Playattack();
         }
