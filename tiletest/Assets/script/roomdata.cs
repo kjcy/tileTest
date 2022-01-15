@@ -6,8 +6,11 @@ public class roomdata : MonoBehaviour
 {
     public enum welldata { none, well, door };
 
+    public int pointX;
+    public int pointY;
+
     public Transform wellParent;
-    public enum wellcount { right, left, up, down };
+    public enum wellcount { right, left, up, down ,NONE = 999};
     public welldata[] welldatalist = new welldata[4];
 
     public Transform[] aroundwell = new Transform[4];
@@ -21,10 +24,61 @@ public class roomdata : MonoBehaviour
         {
             welldatalist[i] = welldata.well;
         }
-        
-
-    
     }
+
+    public int Conversewellcount(wellcount count)
+    {
+
+        wellcount returncount = wellcount.NONE;
+        switch (count)
+        {
+            case wellcount.left:
+                returncount=wellcount.right;
+                break;
+            case wellcount.right:
+                returncount = wellcount.left;
+                break;
+            case wellcount.up:
+                returncount = wellcount.down;
+                break;
+            case wellcount.down:
+                returncount = wellcount.up;
+                break;
+        }
+        return (int)returncount;
+    }
+
+    public int Checksame(roomdata checkroom)
+    {
+        int returncount = 999;
+
+        for(int i = 0; i < welldatalist.Length; i++)
+        {
+            switch (i)
+            {
+                case 0:
+                    if (pointX >= 5) continue;
+                    break;
+                case 1:
+                    if (pointX <= 0) continue;
+                    break;
+                case 2:
+                    if (pointY >= 5) continue;
+                    break;
+                case 3:
+                    if (pointY <= 0) continue;
+                    break;
+            }
+
+            if(welldatalist[i] == checkroom.welldatalist[Conversewellcount((wellcount)i)])
+            {
+                returncount = i;
+            }
+        }
+
+        return returncount;
+    }
+
 
     /// <summary>
     /// 입력을 하는 함수
@@ -78,5 +132,9 @@ public class roomdata : MonoBehaviour
             }
         }
     }
+
+   
+
+
 
 }
