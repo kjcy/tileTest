@@ -16,6 +16,8 @@ public class roomdata : MonoBehaviour
     public Transform[] aroundwell = new Transform[4];
 
     public Vector2 maxsize = new Vector2(15,15);
+
+    static int seed = 100;
     public void Reset()
     {
         Random.InitState(System.DateTime.Now.Second);
@@ -48,46 +50,38 @@ public class roomdata : MonoBehaviour
         return (int)returncount;
     }
 
-    public int Checksame(roomdata checkroom)
+  
+
+   public bool Checkwelldata(int dirwell , roomdata aroundwell)
     {
-        int returncount = 999;
-
-        for(int i = 0; i < welldatalist.Length; i++)
+      /*  if(welldatalist[dirwell] == welldata.door)
         {
-            switch (i)
-            {
-                case 0:
-                    if (pointX >= 5) continue;
-                    break;
-                case 1:
-                    if (pointX <= 0) continue;
-                    break;
-                case 2:
-                    if (pointY >= 5) continue;
-                    break;
-                case 3:
-                    if (pointY <= 0) continue;
-                    break;
-            }
+            if (welldatalist[dirwell] == aroundwell.welldatalist[Conversewellcount((wellcount)dirwell)]) return true;
+        }*/
 
-            if(welldatalist[i] == checkroom.welldatalist[Conversewellcount((wellcount)i)])
-            {
-                returncount = i;
-            }
-        }
+        if (aroundwell == null)
+        {
+            return true;
+        }else if (welldatalist[dirwell] == aroundwell.welldatalist[Conversewellcount((wellcount)dirwell)]) return true;
 
-        return returncount;
+        return false;
     }
-
 
     /// <summary>
     /// 입력을 하는 함수
     /// </summary>
     /// <param name="around">호출된 room</param>
     /// <param name="count">호출된 room 이 이 room 의 어느방향인지,wellcount 를 사용 </param>
-    public void Inputaround(Transform around,int count)
+    public void Inputaround(roomdata roomdata,Transform around,int count)
     {
         aroundwell[count] = around;
+        roomdata.Inputaround(this.transform, (int)Conversewellcount((wellcount)count));
+    }
+
+    public void Inputaround(Transform around, int count)
+    {
+        aroundwell[count] = around;
+
     }
 
 
@@ -95,21 +89,26 @@ public class roomdata : MonoBehaviour
     {
 
         int rand;
-
-        rand = Random.Range(1, 4);
-
+        int rand1;
+        Random.InitState(seed += Mathf.RoundToInt(Random.Range(-5,5)));
+        rand = Random.Range(0, 10000) % 4;
+        do
+        {
+            rand1 = Random.Range(0, 10000) % 4;
+        } while (rand == rand1);
         welldatalist[rand] = welldata.none;
+        welldatalist[rand1] = welldata.none;
 
-        for (int i = 0; i < 4; i++)
+      /*  for (int i = 0; i < 4; i++)
         {
             if (welldatalist[i] == welldata.none) continue;
 
-            rand = Mathf.FloorToInt(Random.value);
-            if (rand != 0)
+            rand = Random.Range(0,100)%10;
+            if (rand == 0)
             {
                 welldatalist[i] = welldata.door;
             }
-        }
+        }*/
         Updatewell();
     }
 
@@ -134,7 +133,19 @@ public class roomdata : MonoBehaviour
     }
 
    
+    public void Setaroundwell()
+    {
+        for(int i = 0; i < 4; i++)
+        {
+            if(aroundwell[i] == null)
+            {
+                welldatalist[i] = welldata.well;
+            }
 
+        }
+
+        Updatewell();
+    }
 
 
 }

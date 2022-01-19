@@ -4,27 +4,34 @@ using UnityEngine;
 
 public class roomManager : MonoBehaviour
 {
-    public roomdata[,] room = new roomdata[5,5];
+    public roomdata[,] room;
 
+    public int maxpointX;
+    public int maxpointY;
     public int pointX;
     public int pointY;
     public GameObject roomPri;
 
-   
+    bool[] checkpoint = { false, false, false, false };
     // Start is called before the first frame update
     void Start()
     {
-        Debug.LogFormat("{0}", room[0, 0] == null);
+      
+        maxpointX = 5;
+        maxpointY = 5;
+
+        room = new roomdata[maxpointX, maxpointY];
         Setstartpoint();
         for(int i = 0; i < 10; i++) { 
           CreateRoom();
         }
+        Outerwall();
     }
 
     public void Setstartpoint()
     {
-        pointX = Random.Range(0, 4);
-        pointY = Random.Range(0, 4);
+        pointX = maxpointX / 2;
+        pointY = maxpointY / 2;
 
         GameObject temp = Instantiate(roomPri,new Vector2(pointX*15,pointY*15),Quaternion.identity, this.transform);
         room[pointX, pointY] = temp.GetComponent<roomdata>();
@@ -37,59 +44,142 @@ public class roomManager : MonoBehaviour
 
     }
 
-  
+  //방을 생성하고 있던방과 연결시커주는 방식 => 길, 외벽은 신경쓰지 않는다.
     public void CreateRoom()
     {
+        int outcount = 0;
+        
         GameObject temp = Instantiate(roomPri, this.transform);
+       
+        temp.GetComponent<roomdata>().Reset();
         temp.GetComponent<roomdata>().Setwell();
-        for(int x = 0; x< 5; x++)
+        do
         {
-            for(int y = 0; y < 5; y++)
+            for (int x = 0; x < maxpointX; x++)
             {
-                if (room[x, y] != null)
+                for (int y = 0; y < maxpointY; y++)
                 {
-                  int check = room[x, y].Checksame(temp.GetComponent<roomdata>());
+                    if (room[x, y] != null) continue;//칸에 room 이 있다면 패스함
 
-                    if (check == 999) continue;
-
-                    //0:오른쪽, 1:왼쪽, 2:위, 3:아래
-                    switch (check)
+                    if (room[x + 1 >= maxpointX ? x : x + 1, y] != null ||
+                        room[x - 1 < 0 ? x : x - 1, y] != null ||
+                        room[x, y + 1 >= maxpointY ? y : y + 1] != null ||
+                        room[x, y - 1 < 0 ? y : y - 1] != null
+                    )
                     {
-                        case 0:
-                            temp.transform.position = new Vector2((x+1) * 15, y * 15);
-                            room[x + 1, y] = temp.GetComponent<roomdata>();
-                            room[x+1, y].pointX = x+1;
-                            room[x+1, y].pointY = y;
-                            break;
-                        case 1:
-                            temp.transform.position = new Vector2((x - 1) * 15, y * 15);
-                            room[x - 1, y] = temp.GetComponent<roomdata>();
-                           
-                            room[x - 1, y].pointX = x - 1;
-                            room[x - 1, y].pointY = y;
-                            break;
-                        case 2:
-                            temp.transform.position = new Vector2(x * 15, (y + 1) * 15);
-                            room[x, y + 1] = temp.GetComponent<roomdata>();
-                            room[x, y+1].pointX = x;
-                            room[x, y+1].pointY = y + 1;
-                            break;
-                        case 3:
-                            temp.transform.position = new Vector2(x * 15, (y - 1) * 15);
-                            room[x, y - 1] = temp.GetComponent<roomdata>();
-                            room[x, y - 1].pointX = x;
-                            room[x, y - 1].pointY = y - 1;
-                            break;
+
+                        for (int i = 0; i < 4; i++)
+                        {
+                            switch (i)
+                            {
+                                case 0:
+                                    if (x + 1 >= maxpointX)
+                                    {
+                                        checkpoint[i] = true;
+                                        continue;
+                                    }
+
+
+                                    checkpoint[i] = temp.GetComponent<roomdata>().Checkwelldata(i, room[x + 1, y]);
+
+                                    break;
+                                case 1:
+                                    if (x - 1 < 0)
+                                    {
+                                        checkpoint[i] = true;
+                                        continue;
+                                    }
+                                    checkpoint[i] = temp.GetComponent<roomdata>().Checkwelldata(i, room[x - 1, y]);
+
+                                    break;
+                                case 2:
+                                    if (y + 1 >= maxpointY)
+                                    {
+                                        checkpoint[i] = true;
+                                        continue;
+                                    }
+                                    checkpoint[i] = temp.GetComponent<roomdata>().Checkwelldata(i, room[x, y + 1]);
+
+                                    break;
+                                case 3:
+                                    if (y - 1 < 0)
+                                    {
+                                        checkpoint[i] = true;
+                                        continue;
+                                    }
+                                    checkpoint[i] = temp.GetComponent<roomdata>().Checkwelldata(i, room[x, y - 1]);
+
+                                    break;
+                            }
+                        }
+
+                        if (checkpoint[0] && checkpoint[1] && checkpoint[2] && checkpoint[3])
+                        {
+                            room[x, y] = temp.GetComponent<roomdata>();
+                            for (int j = 0; j < 4; j++)
+                            {
+                                switch (j)
+                                {
+                                    case 0:
+                                        if (x + 1 >= maxpointX) continue;
+                                        if (room[x + 1, y] != null) room[x, y].Inputaround(room[x + 1, y], room[x + 1, y].gameObject.transform, j);
+                                        break;
+                                    case 1:
+                                        if (x - 1 < 0) continue;
+                                        if (room[x - 1, y] != null) room[x, y].Inputaround(room[x - 1, y], room[x - 1, y].gameObject.transform, j);
+                                        break;
+                                    case 2:
+                                        if (y + 1 >= maxpointY) continue;
+                                        if (room[x, y + 1] != null) room[x, y].Inputaround(room[x, y + 1], room[x, y + 1].gameObject.transform, j);
+                                        break;
+                                    case 3:
+                                        if (y - 1 < 0) continue;
+                                        if (room[x, y - 1] != null) room[x, y].Inputaround(room[x, y - 1], room[x, y - 1].gameObject.transform, j);
+                                        break;
+                                }
+                            }
+                            room[x, y].pointX = x;
+                            room[x, y].pointY = y;
+                            temp.transform.position = new Vector2(room[x, y].pointX * 15, room[x, y].pointY * 15);
+                            return;
+                        }
+                        else
+                        {
+                            for (int i = 0; i < 4; i++)
+                            {
+                                checkpoint[i] = false;
+
+                            }
+
+                        }
                     }
                 }
             }
-        }
-        temp.GetComponent<roomdata>().Updatewell();
+
+            //자리를 찾을 수 없을때 벽을 재설정 후 다시 찾아본다.
+            temp.GetComponent<roomdata>().Setwell();
+            outcount++;
+        } while (outcount<500);
+       
 
 
     }
 
-  
+    public void Outerwall()
+    {
+        for(int x=0;x<maxpointX; x++)
+        {
+            for(int y = 0; y < maxpointY; y++)
+            {
+                if(room[x,y] != null)
+                room[x, y].Setaroundwell();
+            }
+        }
+    }
+
+
+
+
 
     // Update is called once per frame
     void Update()
