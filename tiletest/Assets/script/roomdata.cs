@@ -24,7 +24,7 @@ public class roomdata : MonoBehaviour
         wellParent = this.transform.GetChild(1);
         for (int i = 0; i < 4; i++)
         {
-            welldatalist[i] = welldata.well;
+            welldatalist[i] = welldata.none;
         }
     }
 
@@ -85,7 +85,7 @@ public class roomdata : MonoBehaviour
     }
 
 
-    public void Setwell()
+    /*public void Setwell()
     {
 
         int rand;
@@ -99,7 +99,7 @@ public class roomdata : MonoBehaviour
         welldatalist[rand] = welldata.none;
         welldatalist[rand1] = welldata.none;
 
-      /*  for (int i = 0; i < 4; i++)
+      *//*  for (int i = 0; i < 4; i++)
         {
             if (welldatalist[i] == welldata.none) continue;
 
@@ -108,9 +108,9 @@ public class roomdata : MonoBehaviour
             {
                 welldatalist[i] = welldata.door;
             }
-        }*/
+        }*//*
         Updatewell();
-    }
+    }*/
 
 
     public void Updatewell()
@@ -133,6 +133,7 @@ public class roomdata : MonoBehaviour
     }
 
    
+    //room 의 주변에 다른 room 이 없다면 그 모서리를 벽으로 생성
     public void Setaroundwell()
     {
         for(int i = 0; i < 4; i++)
@@ -146,6 +147,60 @@ public class roomdata : MonoBehaviour
 
         Updatewell();
     }
+
+
+    public bool CreateBoxRoom()
+    {
+        //roomdata 의 welldata 을 비교했을때 none 이 하나라면 none well 방향을 , 아니라면 wellcount.NONE 을 반환한다.
+        wellcount temp = CheckOneWellroom();
+
+        //NONE 이 아니라면 none 이 하나라는 뜻이니 그 방향을 문으로 변경하고 ture 를 반환한다.
+        if(temp != wellcount.NONE)
+        {
+            welldatalist[(int)temp] = welldata.door;
+            return true;
+        }
+        else
+        {
+            return false;//없다면 false 를 반환
+        }
+
+
+
+    }
+
+
+
+    public wellcount CheckOneWellroom()
+    {
+        int checkW = 0;
+
+        wellcount r_wellcount = wellcount.NONE;
+
+        for(int i = 0; i < 4; i++)
+        {
+            //4벽면중 1면만 none 일경우 checkW의 값은 1이 되고 1이될때 방향이 r_wellcount에 들어간다.
+            if(welldatalist[i] == welldata.none)
+            {
+                checkW += 1;
+                r_wellcount = (wellcount)i;
+            }
+        }
+
+
+        if(checkW == 1)//checkW 값이 1이라면 저장항 방향을 반환
+        {
+            return r_wellcount;
+        }
+        else
+        {
+            return wellcount.NONE;//아닐경우는 none을 반환한다.
+        }
+            
+
+        
+    }
+
 
 
 }
